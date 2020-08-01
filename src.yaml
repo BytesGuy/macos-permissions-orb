@@ -1,0 +1,37 @@
+version: 2.1
+description: |
+  An orb to help users set up permissions for the CircleCI macOS executor
+display:
+  home_url: https://circleci.com/orbs/registry/orb/bytesguy/macos-permissions
+  source_url: https://github.com/BytesGuy/macos-permissions-orb
+examples: {}
+commands:
+    add-mac-uitest-permissions:
+        description: |
+            Sets up the environment permissions for testing macOS apps
+        steps:
+            - run:
+                name: Setting up Xcode Helper and Terminal permissions
+                command: |
+                    epochdate=$(($(date +'%s * 1000 + %-N / 1000000')))
+                    sudo sqlite3 "/Library/Application Support/com.apple.TCC/TCC.db" "replace into access (service,client,client_type,allowed,prompt_count,indirect_object_identifier,flags,last_modified) values (\"kTCCServiceAccessibility\",\"com.apple.dt.Xcode-Helper\",0,1,1,\"UNUSED\",0,$epochdate);"
+                    sudo sqlite3 "/Users/distiller/Library/Application Support/com.apple.TCC/TCC.db" "replace into access (service,client,client_type,allowed,prompt_count,indirect_object_identifier,flags,last_modified) values (\"kTCCServiceAccessibility\",\"com.apple.dt.Xcode-Helper\",0,1,1,\"UNUSED\",0,$epochdate);"
+                    sudo sqlite3 "/Users/distiller/Library/Application Support/com.apple.TCC/TCC.db" "replace into access (service,client,client_type,allowed,prompt_count,indirect_object_identifier,flags,last_modified) values (\"kTCCServiceDeveloperTool\",\"com.apple.Terminal\",0,1,1,\"UNUSED\",0,$epochdate);"
+                    sudo sqlite3 "/Library/Application Support/com.apple.TCC/TCC.db" "replace into access (service,client,client_type,allowed,prompt_count,indirect_object_identifier,flags,last_modified) values (\"kTCCServiceDeveloperTool\",\"com.apple.Terminal\",0,1,1,\"UNUSED\",0,$epochdate);"
+    add-permission:
+        description: |
+            Allows setting a custom permission in the macOS permissions database
+        parameters:
+            bundle-id:
+                description: The Bundle ID of the app to grant permissions to
+                type: string
+            permission-type:
+                description: The type of permission to grant
+                type: string
+        steps:
+            - run:
+                name: Granting << parameters.permission-type >> permissions to << parameters.bundle-id >>
+                command: |
+                    epochdate=$(($(date +'%s * 1000 + %-N / 1000000')))
+                    sudo sqlite3 "/Library/Application Support/com.apple.TCC/TCC.db" "replace into access (service,client,client_type,allowed,prompt_count,indirect_object_identifier,flags,last_modified) values (\"<< parameters.permission-type >>\",\"<< parameters.bundle-id >>\",0,1,1,\"UNUSED\",0,$epochdate);"
+                    sudo sqlite3 "/Users/distiller/Library/Application Support/com.apple.TCC/TCC.db" "replace into access (service,client,client_type,allowed,prompt_count,indirect_object_identifier,flags,last_modified) values (\"<< parameters.permission-type >>\",\"<< parameters.bundle-id >>\",0,1,1,\"UNUSED\",0,$epochdate);"
